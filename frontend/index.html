@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>REEMSEC DataGuard — Threat Intelligence Console</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+:root{--bg:#030812;--side:#050f1c;--card:rgba(9,25,42,.88);--card2:#0b2033;--line:rgba(62,150,181,.24);--teal:#19f5dc;--cyan:#35c8ff;--blue:#468aff;--purple:#9b72ff;--white:#effaff;--muted:#8ba9bd;--red:#ff5377;--orange:#ff9b48;--yellow:#f5d45c;--green:#23e6a8;--glow:0 0 30px rgba(20,232,215,.12)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--white);font:14px Inter,Arial,sans-serif;overflow-x:hidden}
+body:not(.authenticated) .sidebar,body:not(.authenticated) .main{display:none!important}
+.auth-screen{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:22px;background:radial-gradient(ellipse at 50% 20%,rgba(0,208,214,.15),transparent 42%),#030812}
+.auth-card{width:min(440px,100%);padding:32px;border:1px solid rgba(25,245,220,.35);border-radius:18px;background:linear-gradient(145deg,rgba(12,31,50,.98),rgba(5,16,29,.99));box-shadow:0 20px 70px #0009,0 0 35px #19f5dc12}
+.auth-brand{text-align:center;margin-bottom:26px}.auth-brand strong{display:block;font:800 25px 'Space Grotesk';letter-spacing:2px;color:var(--white)}.auth-brand span{color:var(--teal);font:700 12px 'Space Grotesk';letter-spacing:3px}.auth-card h2{font:700 21px 'Space Grotesk';margin:0 0 7px}.auth-card p{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 22px}.auth-field{display:block;margin:14px 0 6px;color:#c9dce8;font-size:12px;font-weight:700}.auth-input{width:100%;padding:13px 14px;border:1px solid rgba(69,131,160,.5);border-radius:9px;background:#071a2b;color:var(--white);outline:none}.auth-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px #19f5dc18}.auth-submit{width:100%;margin-top:20px}.auth-error{min-height:18px;margin-top:12px;color:#ff8ca3;font-size:12px}
+.auth-password-wrap{position:relative}.auth-password-wrap .auth-input{padding-right:48px}
+.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;background:transparent;color:#8fb4c8;display:grid;place-items:center;border-radius:7px}
+.password-toggle:hover{color:var(--teal);background:#19f5dc12}.password-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.logout-btn{padding:9px 12px;border:1px solid rgba(255,83,119,.4);border-radius:9px;background:rgba(255,83,119,.08);color:#ff9aaf;font-size:12px;font-weight:700}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;background:radial-gradient(ellipse at 78% 10%,rgba(0,208,214,.12),transparent 30%),radial-gradient(ellipse at 20% 80%,rgba(55,91,200,.1),transparent 32%),linear-gradient(rgba(36,156,189,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(36,156,189,.035) 1px,transparent 1px);background-size:auto,auto,42px 42px,42px 42px}
+#particles{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:.5}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:258px;flex:0 0 258px;position:fixed;inset:0 auto 0 0;z-index:10;padding:23px 15px 18px;background:linear-gradient(180deg,rgba(5,16,29,.97),rgba(4,12,23,.98));border-right:1px solid rgba(40,130,158,.25);backdrop-filter:blur(20px);display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px 34px}.brand-symbol{width:48px;height:52px;filter:drop-shadow(0 0 12px #11e9d766)}.brand-title{font:800 20px 'Space Grotesk';letter-spacing:1.4px}.brand-sub{font:600 12px 'Space Grotesk';color:var(--teal);letter-spacing:2px;margin-top:1px}
+.nav-caption{font-size:10px;font-weight:800;letter-spacing:2px;color:#58758c;padding:0 13px;margin:12px 0 9px}
+.nav-item{width:100%;display:flex;align-items:center;gap:13px;padding:12px 13px;margin:3px 0;border:1px solid transparent;border-radius:10px;background:transparent;color:#a9c0d1;text-align:left;transition:.25s;position:relative;overflow:hidden}
+.nav-item svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none}.nav-item:hover{color:#e9ffff;background:rgba(24,224,213,.07);border-color:rgba(24,224,213,.16)}.nav-item.active{color:var(--teal);border-color:rgba(24,245,220,.35);background:linear-gradient(100deg,rgba(10,199,187,.19),rgba(10,199,187,.035));box-shadow:inset 0 0 24px rgba(20,230,215,.055),0 0 18px rgba(20,230,215,.05)}.nav-item.active:before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:4px;background:var(--teal);box-shadow:0 0 12px var(--teal)}
+.side-bottom{margin-top:auto;border:1px solid rgba(30,180,185,.3);border-radius:13px;padding:13px;background:linear-gradient(135deg,rgba(10,48,62,.7),rgba(6,20,34,.8));box-shadow:var(--glow)}
+.side-product{display:flex;gap:10px;align-items:center}.side-product svg{width:35px;height:35px}.side-product b{display:block;font-size:12px}.side-product small{color:var(--muted);font-size:10px}.api-state{display:inline-flex;align-items:center;gap:7px;color:var(--green);font-size:11px;margin:11px 0 0 43px}.pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35;box-shadow:0 0 2px var(--green)}}
+.main{margin-left:258px;width:calc(100% - 258px);padding:24px 30px 40px;max-width:1700px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:15px}.title-wrap{display:flex;gap:15px;align-items:center}.title-accent{width:4px;height:48px;border-radius:5px;background:linear-gradient(var(--teal),var(--cyan));box-shadow:0 0 17px var(--teal)}h1{font:700 28px 'Space Grotesk';letter-spacing:-.6px;margin:0}.subtitle{color:var(--muted);font-size:13px;margin-top:4px}.top-controls{display:flex;align-items:center;gap:12px}.api-pill{display:flex;align-items:center;gap:8px;padding:8px 13px;border:1px solid rgba(35,222,169,.35);border-radius:30px;background:rgba(11,70,56,.28);color:var(--green);font-size:12px;font-weight:700}.theme-switch{display:flex;gap:4px;border:1px solid var(--line);border-radius:30px;padding:4px;background:#0a1b2b}.theme-switch button{width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:#a9c4d6}.theme-switch button.active{background:#19435a;color:white}.user-orb{width:39px;height:39px;border-radius:50%;border:1px solid var(--teal);display:grid;place-items:center;color:var(--teal);font:700 18px 'Space Grotesk';box-shadow:0 0 15px #14e7d522}
+.hero{position:relative;min-height:206px;display:grid;grid-template-columns:1.2fr .75fr .85fr;align-items:center;overflow:hidden;padding:25px 30px;border:1px solid rgba(28,206,212,.55);border-radius:17px;background:radial-gradient(ellipse at 62% 53%,rgba(0,225,209,.17),transparent 27%),linear-gradient(105deg,#0b2034 0%,#071a2b 56%,#06212c 100%);box-shadow:0 12px 40px #0005,inset 0 0 40px #00e4d40a;margin-bottom:16px}
+.hero:after{content:"";position:absolute;inset:0;background:repeating-radial-gradient(ellipse at 62% 80%,transparent 0 22px,rgba(15,233,216,.08) 23px 24px);mask-image:linear-gradient(90deg,transparent 33%,#000 55%,transparent 88%);animation:wave 9s linear infinite;pointer-events:none}@keyframes wave{to{transform:translateX(35px)}}
+.hero-copy,.hero-emblem,.hero-list{position:relative;z-index:1}.eyebrow{font-size:10px;letter-spacing:2px;color:var(--teal);font-weight:800;margin-bottom:9px}.hero h2{font:700 24px 'Space Grotesk';margin:0 0 8px}.hero h2 span{color:var(--teal);text-shadow:0 0 15px #11dcca55}.hero p{color:#b4cbd9;line-height:1.65;max-width:520px;margin:0 0 17px;font-size:13px}
+.btn{padding:11px 16px;border-radius:9px;border:1px solid transparent;font-weight:700;transition:.22s}.btn-primary{color:#03202a;background:linear-gradient(100deg,#19f5d4,#08c7c2);box-shadow:0 0 22px #0ae5d33a}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 28px #0ae5d377}.btn-ghost{margin-left:8px;color:#e7fbff;border-color:#14d9cf;background:rgba(2,20,32,.5)}.btn-ghost:hover{background:#0a4650}
+.hero-emblem{height:150px;display:grid;place-items:center}.shield-wrap{position:relative;width:135px;height:142px;display:grid;place-items:center}.shield-wrap:before,.shield-wrap:after{content:"";position:absolute;border:1px solid rgba(24,238,218,.4);border-radius:50%;width:175px;height:55px;bottom:0;box-shadow:0 0 15px #00e9d522;animation:orbit 4s ease-in-out infinite}.shield-wrap:after{width:205px;height:74px;bottom:-8px;opacity:.5;animation-delay:-2s}@keyframes orbit{50%{transform:scaleX(1.12);opacity:.45}}.shield-svg{width:112px;height:128px;filter:drop-shadow(0 0 13px #00f4db99);animation:float 4s ease-in-out infinite}@keyframes float{50%{transform:translateY(-7px)}}
+.hero-list{list-style:none;margin:0;padding:0 0 0 15px}.hero-list li{display:flex;align-items:center;gap:10px;color:#d8e9f3;margin:12px 0;font-size:12px}.hero-list svg{width:17px;height:17px;stroke:var(--teal);stroke-width:2.7;fill:none;filter:drop-shadow(0 0 4px #13e8d9)}
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}.metric{position:relative;overflow:hidden;display:flex;align-items:center;gap:13px;min-height:106px;padding:15px;border:1px solid rgba(72,139,169,.4);border-radius:14px;background:linear-gradient(140deg,rgba(17,42,64,.94),rgba(7,22,37,.96));box-shadow:0 9px 25px #0003;transition:.25s}.metric:after{content:"";position:absolute;right:-28px;top:-38px;width:95px;height:95px;border-radius:50%;background:var(--tone,var(--cyan));opacity:.07;filter:blur(17px)}.metric:hover{transform:translateY(-3px);border-color:var(--tone,var(--teal));box-shadow:0 8px 28px #0005,0 0 20px color-mix(in srgb,var(--tone,var(--teal)) 15%,transparent)}.metric-icon{width:42px;height:42px;display:grid;place-items:center;color:var(--tone,var(--cyan));flex:none}.metric-icon svg{width:35px;height:35px;stroke:currentColor;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 8px currentColor)}.metric-label{font-size:12px;color:#c7d9e6;font-weight:600}.metric-value{font:700 27px 'Space Grotesk';line-height:1.25}.metric-desc{font-size:10px;color:#8da9bd}.critical{--tone:var(--red)}.high{--tone:var(--orange)}.medium{--tone:var(--yellow)}.low{--tone:var(--cyan)}
+.analytics{display:grid;grid-template-columns:1fr 1.35fr;gap:15px;margin-bottom:16px}.panel{border:1px solid rgba(69,131,160,.38);border-radius:15px;background:linear-gradient(145deg,rgba(12,31,50,.96),rgba(6,19,33,.96));padding:17px 19px;box-shadow:0 10px 28px #0003;min-width:0}.panel-head{display:flex;align-items:center;gap:10px;font:700 16px 'Space Grotesk';margin-bottom:12px}.panel-head svg{width:21px;height:21px;stroke:var(--teal);fill:none;stroke-width:2}.severity-layout{display:flex;align-items:center;justify-content:space-around;gap:15px;min-height:155px}.donut{width:154px;height:154px;border-radius:50%;display:grid;place-items:center;position:relative;flex:none;background:conic-gradient(var(--red) 0deg 0deg,var(--orange) 0deg 0deg,var(--yellow) 0deg 0deg,var(--cyan) 0deg 360deg);filter:drop-shadow(0 0 10px #1bbbe522)}.donut:before{content:"";position:absolute;inset:18px;border-radius:50%;background:#0b1d2e;border:1px solid #28455c}.donut-center{position:relative;text-align:center}.donut-center strong{display:block;font:700 27px 'Space Grotesk'}.donut-center small{color:#a5bdce;font-size:11px}.legend{flex:1;min-width:145px}.legend-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(75,132,158,.16);font-size:12px;color:#d3e2ed}.legend-name{display:flex;align-items:center;gap:8px}.legend-dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 9px currentColor}
+.activity-top{display:flex;align-items:center;justify-content:space-between}.activity-top select{background:#0a1d2e;color:#dff4ff;border:1px solid #31566e;border-radius:8px;padding:7px;font-size:11px}.chart{height:158px;position:relative;padding:9px 8px 22px 27px}.chart-grid{position:absolute;inset:8px 8px 26px 27px;display:flex;flex-direction:column;justify-content:space-between}.chart-grid span{border-top:1px solid rgba(78,128,153,.2);position:relative}.chart-grid span:before{content:attr(data-n);position:absolute;left:-25px;top:-8px;font-size:9px;color:#829fb2}.chart svg{position:absolute;inset:8px 8px 26px 27px;width:calc(100% - 35px);height:calc(100% - 34px);overflow:visible}.chart-labels{position:absolute;bottom:0;left:27px;right:8px;display:flex;justify-content:space-between;color:#9ab2c3;font-size:10px}
+.bottom-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:15px}.panel-top{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(76,137,163,.2);padding-bottom:11px;margin-bottom:9px}.view-all{border:0;background:none;color:var(--teal);font-weight:700;font-size:12px}.empty-state{text-align:center;padding:20px 8px;color:#a9c0d0;font-size:12px}.empty-state svg{width:38px;height:38px;stroke:#7798b0;fill:none;margin-bottom:7px}.empty-state strong{display:block;color:#e2f1f9;font-size:14px;margin-bottom:3px}.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.quick{min-height:112px;border:1px solid rgba(74,136,166,.4);border-radius:12px;background:linear-gradient(145deg,#102c43,#091b2c);color:#e9f7ff;padding:13px 7px;text-align:center;transition:.22s}.quick:hover{border-color:var(--teal);transform:translateY(-3px);box-shadow:0 0 20px #0de5d51a}.quick svg{width:28px;height:28px;stroke:var(--teal);fill:none;stroke-width:1.7;margin-bottom:5px}.quick b{display:block;font-size:12px}.quick small{display:block;color:#91adbf;font-size:9px;margin-top:3px}
+.view{display:none;animation:appear .35s ease}.view.active{display:block}@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.section-title{font:700 25px 'Space Grotesk';margin:0 0 4px}.section-sub{color:var(--muted);margin:0 0 20px;font-size:13px}.tabs{display:flex;gap:8px;margin:13px 0 18px;flex-wrap:wrap}.tab{padding:9px 14px;background:#0a1c2d;color:#a9c4d5;border:1px solid #24465d;border-radius:8px}.tab.active{color:var(--teal);border-color:#0db8ad;background:#06363e}.field-label{font-weight:700;color:#d9e9f3}.control{width:100%;background:#061523;color:#e7f5fc;border:1px solid #294e65;border-radius:9px;padding:12px;margin:8px 0 15px;outline:none}.control:focus{border-color:var(--teal);box-shadow:0 0 0 3px #16dfd21c}textarea.control{min-height:190px;resize:vertical}.upload-box{border:1px dashed #36728b;border-radius:12px;padding:28px;text-align:center;background:#071a2a}.upload-box svg{width:40px;height:40px;stroke:var(--teal);fill:none}.action-row{display:flex;gap:9px;flex-wrap:wrap}.status{margin-top:14px;padding:11px 13px;border:1px solid #28546d;border-radius:9px;background:#0b2638;color:#cde5f1}.status.error{border-color:#a33c55;color:#ff9db0}.status.success{border-color:#087e68;color:#59eebd}.finding{padding:15px;border:1px solid #24485f;background:rgba(8,26,42,.9);border-radius:10px;margin:10px 0}.finding-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.finding h3{font-size:14px;margin:0 0 7px}.finding p{font-size:11px;color:#9db6c7;margin:6px 0;overflow-wrap:anywhere}.finding-description{font-size:12px!important;color:#d3e4ed!important;line-height:1.5}.finding-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.finding-meta span{font-size:10px;color:#a9c1d0;background:#102c40;border:1px solid #254b61;border-radius:6px;padding:5px 8px;overflow-wrap:anywhere}.finding-actions{display:flex;justify-content:flex-end;margin-top:10px}.copy-fingerprint{border:1px solid #286077;background:#0b2638;color:#72e9df;border-radius:7px;padding:6px 9px;font-size:10px}.findings-toolbar{display:flex;justify-content:space-between;gap:10px;color:#8faabd;font-size:11px;padding:0 2px 8px}.badge{display:inline-block;border-radius:20px;padding:3px 8px;font-size:10px;font-weight:800}.badge.critical{background:#4a1c2b;color:#ff8299}.badge.high{background:#492b16;color:#ffb16c}.badge.medium{background:#4b4017;color:#f5df78}.badge.low{background:#10394d;color:#69d8ff}.coverage-row{display:flex;justify-content:space-between;padding:13px;border-bottom:1px solid #1d3b50;color:#d7e7f0}.active-tag{color:var(--green);font-size:11px;font-weight:700}
+
+.field-label{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#91adbf}
+.field-input{width:100%;padding:12px 14px;border:1px solid #28516a;border-radius:9px;background:#071a2a;color:#eaf8ff;outline:none}
+.field-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(25,245,220,.09)}
+.btn-secondary{padding:10px 14px;border:1px solid #31566d;border-radius:8px;background:#102a3e;color:#c9e0ec;font-size:11px;font-weight:800}
+.btn-secondary:hover{border-color:var(--teal);color:var(--teal)}
+.action-row{display:flex;gap:9px;flex-wrap:wrap}
+.rule-card{padding:15px;border:1px solid #24485f;background:rgba(8,26,42,.72);border-radius:10px;margin:10px 0}
+.rule-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.rule-card h3{font-size:14px;margin:0;color:#e3f2f8}
+.rule-card p{font-size:12px;line-height:1.55;color:#9db6c7;margin:9px 0 0}
+.rule-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px}
+.rule-id{font-size:10px;color:#8daabd;background:#102c40;border:1px solid #254b61;border-radius:6px;padding:5px 8px}
+.rule-status{font-size:10px;color:var(--green);font-weight:800}
+.rules-summary{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.rules-summary span{font-size:11px;color:#b7cfdd;background:#102c40;border:1px solid #254b61;border-radius:7px;padding:7px 10px}
+.table-head{font-size:10px;color:#7f9eb2;text-transform:uppercase;letter-spacing:1px}.light-mode{--bg:#edf4f8;--white:#142c3e;--muted:#617b8e}.light-mode:before{opacity:.12}.light-mode .sidebar{background:#f8fbfd}.light-mode .panel,.light-mode .metric,.light-mode .side-bottom{background:#fff;color:#183247}.light-mode .nav-item{color:#476176}.light-mode .nav-item.active{background:#d8f7f2;color:#007c74}.light-mode .metric-label,.light-mode .legend-row,.light-mode .hero-list li{color:#27465b}.light-mode .control{background:#f4f8fb;color:#173047}
+@media(max-width:1200px){.metrics{grid-template-columns:repeat(3,1fr)}.hero{grid-template-columns:1.2fr .6fr .8fr}}@media(max-width:900px){.sidebar{width:76px;padding:18px 8px}.brand{padding:0 6px 28px}.brand-copy,.nav-caption,.nav-item span:not(.keep),.side-bottom{display:none}.nav-item{justify-content:center;padding:13px 5px}.nav-item svg{width:21px;height:21px}.main{margin-left:76px;width:calc(100% - 76px);padding:18px 15px}.hero{grid-template-columns:1fr}.hero-emblem,.hero-list{display:none}.analytics,.bottom-grid{grid-template-columns:1fr}}@media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.top-controls{width:100%;justify-content:space-between}.metrics{grid-template-columns:repeat(2,1fr)}.metric{padding:10px;gap:8px}.metric-icon{width:30px}.metric-value{font-size:22px}.hero{padding:20px}.hero h2{font-size:20px}.severity-layout{flex-direction:column}.quick-actions{grid-template-columns:1fr}.main{padding:14px 10px}}
+.user-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin-top:12px}.user-form-grid>div{display:flex;flex-direction:column;gap:7px}.user-form-actions{grid-column:1/-1;display:flex!important;align-items:center;gap:14px!important;flex-direction:row!important}.table-wrap{width:100%;overflow-x:auto}.users-table{width:100%;border-collapse:collapse;min-width:700px}.users-table th,.users-table td{text-align:left;padding:12px 10px;border-bottom:1px solid rgba(75,132,158,.2);font-size:12px;vertical-align:middle}.users-table th{font-size:10px;color:#83a3b8;text-transform:uppercase;letter-spacing:.7px}.users-table td{color:#d7e7f0}.users-table .field-input{min-width:130px;padding:8px;font-size:11px}.user-action{border:1px solid #286077;background:#0b2638;color:#72e9df;border-radius:7px;padding:7px 9px;font-size:10px;font-weight:700;cursor:pointer}.user-action:disabled{opacity:.5;cursor:not-allowed}.user-action.delete{border-color:#8c3549;background:#351722;color:#ff9db0}.user-status{font-size:10px;font-weight:800}.user-status.active{color:#59eebd}.user-status.inactive{color:#ff9db0}.user-name{font-weight:700;color:#e9f7ff}.user-meta{display:block;color:#89a8bb;font-size:10px;margin-top:3px}.light-mode .users-table td{color:#234257}.light-mode .user-name{color:#173047}@media(max-width:650px){.user-form-grid{grid-template-columns:1fr}.user-form-actions{grid-column:auto}}
+.nav-item[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<section class="auth-screen" id="authScreen">
+ <form class="auth-card" id="loginForm">
+  <div class="auth-brand"><strong>REEMSEC</strong><span>DATAGUARD</span></div>
+  <h2>Secure Sign In</h2>
+  <p>Sign in to access the Sensitive Data &amp; Secret Exposure Detection Platform.</p>
+  <label class="auth-field" for="loginIdentifier">Username or email</label>
+  <input class="auth-input" id="loginIdentifier" name="username" autocomplete="username" required placeholder="Enter your username or email">
+  <label class="auth-field" for="loginPassword">Password</label>
+  <div class="auth-password-wrap">
+   <input class="auth-input" id="loginPassword" name="password" type="password" autocomplete="current-password" required placeholder="Enter your password">
+   <button class="password-toggle" id="togglePassword" type="button" aria-label="Show password" title="Show password">
+    <svg id="passwordEyeIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+   </button>
+  </div>
+  <button class="btn btn-primary auth-submit" id="loginSubmit" type="submit">SIGN IN →</button>
+  <div class="auth-error" id="loginError" role="alert"></div>
+ </form>
+</section>
+<canvas id="particles"></canvas>
+<aside class="sidebar">
+ <div class="brand">
+  <svg class="brand-symbol" viewBox="0 0 64 72" fill="none"><path d="M32 3 57 13v20c0 17-11 28-25 36C18 61 7 50 7 33V13L32 3Z" stroke="#19f5dc" stroke-width="4"/><path d="M20 48V24h14c8 0 12 4 12 10 0 5-3 8-8 9l9 5H35l-8-7v7h-7Zm7-13h7c3 0 5-1 5-3s-2-3-5-3h-7v6Z" fill="#19f5dc"/></svg>
+  <div class="brand-copy"><div class="brand-title">REEMSEC</div><div class="brand-sub">DATAGUARD</div></div>
+ </div>
+ <div class="nav-caption">COMMAND CENTER</div>
+ <button class="nav-item active" data-view="dashboard"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Dashboard</button>
+ <button class="nav-item" data-view="scanner"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10h5M10.5 7.5v5"/></svg>Threat Scanner</button>
+ <button class="nav-item" data-view="findings"><svg viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg>Security Findings</button>
+ <div class="nav-caption">INTELLIGENCE</div>
+ <button class="nav-item" data-view="coverage" id="coverageNav" hidden><svg viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Zm-9 10 9 5 9-5M3 17l9 5 9-5"/></svg>Detection Rules</button>
+ <button class="nav-item" data-view="history"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5m4-1v5l4 2"/></svg>Scan History</button>
+ <button class="nav-item" data-view="reports" id="reportsNav" hidden><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6M8 13h8m-8 4h8"/></svg>Intelligence Reports</button>
+ <div class="nav-caption">SYSTEM</div>
+ <button class="nav-item" data-view="users" id="usersNav" hidden><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M16 4a4 4 0 0 1 0 8m2 3a6 6 0 0 1 4 6"/></svg>User Management</button>
+ <button class="nav-item" data-view="settings" id="settingsNav" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z"/></svg>Configuration</button>
+ <button class="nav-item" data-view="about"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>About Platform</button>
+ <div class="side-bottom"><div class="side-product"><svg viewBox="0 0 40 44" fill="none"><path d="M20 2 36 8v13c0 10-7 17-16 21C11 38 4 31 4 21V8L20 2Z" stroke="#19f5dc" stroke-width="2.5"/><path d="M13 28V14h8c5 0 7 2 7 5 0 3-2 5-5 5l6 4h-8l-4-4v4h-4Z" fill="#19f5dc"/></svg><div><b>REEMSEC DataGuard</b><small>Threat Intelligence Platform · v1.0</small></div></div><div class="api-state"><i class="pulse-dot"></i><span id="apiStatus">Checking API status</span></div></div>
+</aside>
+<main class="main">
+<header class="topbar"><div class="title-wrap"><div class="title-accent"></div><div><h1 id="pageTitle">Security Dashboard</h1><div class="subtitle">Sensitive Data &amp; Secret Exposure Detection Platform</div></div></div><div class="top-controls"><div class="api-pill"><i class="pulse-dot"></i><span id="topApi">API CONNECTING</span></div><div class="theme-switch"><button id="lightBtn" title="Light mode">☼</button><button id="darkBtn" class="active" title="Dark mode">☾</button></div><div class="user-orb" id="userOrb" title="Signed-in user">R</div><button class="logout-btn" id="logoutBtn" type="button">SIGN OUT</button></div></header>
+<section class="view active" id="dashboard">
+ <div class="hero"><div class="hero-copy"><div class="eyebrow" id="dashboardEyebrow">◈ &nbsp; PROACTIVE SECURITY · REAL-TIME VISIBILITY</div><h2 id="dashboardWelcome">Welcome to <span>REEMSEC DataGuard</span></h2><p id="dashboardDescription">Detect exposed secrets, API keys, tokens and sensitive credentials before they become a security risk.</p><button class="btn btn-primary" data-goto="scanner">▶ &nbsp; START NEW SCAN</button><button class="btn btn-ghost" data-goto="scanner">⇧ &nbsp; UPLOAD FILE</button></div>
+ <div class="hero-emblem"><div class="shield-wrap"><svg class="shield-svg" viewBox="0 0 120 140" fill="none"><path d="M60 5 108 24v37c0 33-20 56-48 72C32 117 12 94 12 61V24L60 5Z" stroke="#23f3dc" stroke-width="5" fill="url(#sg)"/><path d="M60 43a15 15 0 0 0-15 15v8h30v-8a15 15 0 0 0-15-15Z" stroke="#23f3dc" stroke-width="5"/><rect x="38" y="64" width="44" height="34" rx="7" fill="#12dfd0" fill-opacity=".17" stroke="#23f3dc" stroke-width="4"/><path d="M60 76v10m-4-10h8" stroke="#23f3dc" stroke-width="4" stroke-linecap="round"/><defs><linearGradient id="sg" x1="10" y1="5" x2="110" y2="130"><stop stop-color="#1af6dc" stop-opacity=".2"/><stop offset="1" stop-color="#13b8ee" stop-opacity=".03"/></linearGradient></defs></svg></div></div>
+ <ul class="hero-list"><li><svg viewBox="0 0 20 20"><path d="m3 10 4 4 10-10"/></svg>Secret &amp; API Key Detection</li><li><svg viewBox="0 0 20 20"><path d="m3 10 4 4 10-10"/></svg>Sensitive Data Identification</li><li><svg viewBox="0 0 20 20"><path d="m3 10 4 4 10-10"/></svg>Multi-format File Scanning</li><li><svg viewBox="0 0 20 20"><path d="m3 10 4 4 10-10"/></svg>Actionable Security Reports</li></ul></div>
+ <div class="metrics">
+  <div class="metric"><div class="metric-icon"><svg viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Zm-10 10 10 5 10-5M2 17l10 5 10-5"/></svg></div><div><div class="metric-label">Total Findings</div><div class="metric-value" id="totalCount">0</div><div class="metric-desc">Detected exposures</div></div></div>
+  <div class="metric critical"><div class="metric-icon"><svg viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg></div><div><div class="metric-label">Critical</div><div class="metric-value" id="criticalCount">0</div><div class="metric-desc">Immediate action required</div></div></div>
+  <div class="metric high"><div class="metric-icon"><svg viewBox="0 0 24 24"><path d="M4 21V4m1 1c7-5 9 5 16 0v11c-7 5-9-5-16 0"/></svg></div><div><div class="metric-label">High</div><div class="metric-value" id="highCount">0</div><div class="metric-desc">High-risk exposures</div></div></div>
+  <div class="metric medium"><div class="metric-icon"><svg viewBox="0 0 24 24"><path d="M12 2 21 6v6c0 5-4 8-9 10-5-2-9-5-9-10V6l9-4Z"/><path d="m8 12 3 3 5-6"/></svg></div><div><div class="metric-label">Medium</div><div class="metric-value" id="mediumCount">0</div><div class="metric-desc">Review recommended</div></div></div>
+  <div class="metric low"><div class="metric-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg></div><div><div class="metric-label">Low</div><div class="metric-value" id="lowCount">0</div><div class="metric-desc">Informational findings</div></div></div>
+ </div>
+ <div class="analytics">
+  <div class="panel"><div class="panel-head"><svg viewBox="0 0 24 24"><path d="M4 20V10m6 10V4m6 16v-7m6 7V7"/></svg>Findings by Severity</div><div class="severity-layout"><div class="donut" id="severityDonut"><div class="donut-center"><strong id="donutTotal">0</strong><small>FINDINGS</small></div></div><div class="legend" id="severityLegend"></div></div></div>
+  <div class="panel"><div class="activity-top"><div class="panel-head"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M6 15l5-5 4 3 6-8"/></svg>Scan Activity</div><select id="activityRange"><option>Last 7 Days</option><option>Last 30 Days</option></select></div><div class="chart"><div class="chart-grid"><span data-n="10"></span><span data-n="8"></span><span data-n="6"></span><span data-n="4"></span><span data-n="2"></span><span data-n="0"></span></div><svg viewBox="0 0 600 130" preserveAspectRatio="none"><defs><linearGradient id="lineGlow" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#13ead7" stop-opacity=".3"/><stop offset="1" stop-color="#13ead7" stop-opacity="0"/></linearGradient></defs><path id="activityArea" d="M0 125 L600 125Z" fill="url(#lineGlow)"/><polyline id="activityLine" points="0,125 100,125 200,125 300,125 400,125 500,125 600,125" fill="none" stroke="#19f5dc" stroke-width="2.5"/><g id="activityDots" fill="#19f5dc"></g></svg><div class="chart-labels"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div></div></div>
+ </div>
+ <div class="bottom-grid"><div class="panel"><div class="panel-top"><div class="panel-head" style="margin:0"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="recentFindingsTitle">Recent Scan Findings</span></div><button class="view-all" data-goto="findings">VIEW ALL →</button></div><div id="dashboardFindings" class="empty-state"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6M8 13h8m-8 4h5"/></svg><strong>No scan results yet.</strong>Start your first scan to see security findings here.</div></div>
+ <div class="panel"><div class="panel-head"><svg viewBox="0 0 24 24"><path d="m13 2-3 9h7L9 22l2-9H4l9-11Z"/></svg>Quick Actions</div><div class="quick-actions"><button class="quick" data-goto="scanner"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><b>New Scan</b><small>Text, files or directory</small></button><button class="quick" data-goto="findings"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6"/></svg><b>View Findings</b><small>Browse detected issues</small></button><button class="quick" id="quickExport"><svg viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></svg><b>Export Report</b><small>Download scan results</small></button></div></div></div>
+</section>
+<section class="view" id="scanner"><h2 class="section-title">Threat Scanner</h2><p class="section-sub">Inspect source code, configuration files and project directories for exposed credentials.</p><div class="panel"><div class="tabs"><button class="tab active" data-mode="text">TEXT ANALYSIS</button><button class="tab" data-mode="file">FILE UPLOAD</button><button class="tab" data-mode="directory" id="directoryScanTab">DIRECTORY SCAN</button></div><div id="textMode"><label class="field-label">Input content</label><textarea id="scanInput" class="control" placeholder="// Paste source code, environment variables or configuration here..."></textarea><div class="action-row"><button class="btn btn-ghost" id="loadExample">Load sample</button><button class="btn btn-ghost" id="clearInput">Clear</button><button class="btn btn-primary" id="scanTextBtn">◈ &nbsp; ANALYZE CONTENT</button></div></div><div id="fileMode" style="display:none"><div class="upload-box"><svg viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/></svg><p>Choose a file to inspect</p><input type="file" id="fileInput" class="control" multiple accept=".py,.txt,.env,.js,.ts,.json,.yaml,.yml,.ini,.toml,.php,.html,.css,.sh,.xml,.csv,.log,.pdf,.docx,.xlsx,.zip,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.webp" style="max-width:480px;margin:auto"><p class="section-sub">Supported formats: TXT, PDF (including scanned PDFs with OCR), CSV, JSON, LOG, ENV, code files, DOCX, XLSX, ZIP, PNG, JPG, JPEG, BMP, TIFF and WEBP. Select one or multiple files.</p></div><button class="btn btn-primary" id="scanFileBtn" style="margin-top:14px">SCAN FILE →</button></div><div id="directoryMode" style="display:none"><label class="field-label">Project directory path</label><input id="directoryInput" class="control" placeholder="C:\path\to\your\project"><p class="section-sub">Directory scanning follows the backend project-root restriction.</p><button class="btn btn-primary" id="scanDirectoryBtn">SCAN DIRECTORY →</button></div><div id="scanStatus" class="status" hidden></div></div><div class="panel" style="margin-top:15px"><div class="panel-head">Analysis Output</div><div id="resultsContent" class="empty-state">Your scan results will appear here.</div></div></section>
+<section class="view" id="findings"><h2 class="section-title">Security Findings</h2><p class="section-sub">Investigate, search and filter detected secret exposures.</p><div class="panel"><div class="action-row"><input id="findingSearch" class="control" style="flex:1;min-width:180px" placeholder="Search rule, file, path or fingerprint..."><select id="severityFilter" class="control" style="width:180px"><option value="all">All severities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select><select id="findingSort" class="control" style="width:190px"><option value="severity">Sort: Highest severity</option><option value="newest">Sort: Newest first</option><option value="rule">Sort: Rule name</option><option value="file">Sort: File path</option></select></div><div class="findings-toolbar"><span id="findingCount">0 findings</span><span>Secret values are always redacted</span></div><div id="allFindings"></div></div></section>
+<section class="view" id="coverage"><h2 class="section-title">Detection Rules</h2><p class="section-sub">Live detection rules retrieved from the REEMSEC DataGuard backend.</p><div class="panel" style="margin-bottom:14px"><div class="panel-top"><div><div class="panel-head" style="margin:0">Detection Engine Coverage</div><p class="section-sub" style="margin:5px 0 0">Rule definitions and severity levels configured in the scanner engine.</p></div><b id="rulesTotal" class="active-tag">Loading...</b></div><div id="rulesStatus" class="section-sub" style="margin:12px 0 0">Connecting to detection engine...</div></div><div class="panel" id="coverageList"><div class="empty-state">Loading detection rules...</div></div></section>
+<section class="view" id="history">
+<h2 class="section-title">Scan History</h2>
+<p class="section-sub">Persistent record of scans accessible to your account role.</p>
+<div class="action-row" style="margin-bottom:14px">
+<button class="btn btn-secondary" id="exportHistoryBtn">⇩ &nbsp; EXPORT HISTORY</button>
+<button class="btn btn-danger" id="clearHistoryBtn" type="button" hidden>CLEAR HISTORY</button>
+</div>
+<div class="panel" id="scanHistory">No scans performed yet.</div>
+<p class="section-sub" style="margin-top:10px">Scan history is stored in the platform database. Only administrators can clear it; audit records are retained.</p>
+</section>
+<section class="view" id="reports">
+<h2 class="section-title">Intelligence Reports</h2>
+<p class="section-sub">Generate a structured security assessment from your latest completed scan.</p>
+<div class="grid grid-4" style="margin-bottom:14px">
+ <div class="metric-card"><span class="metric-label">TOTAL FINDINGS</span><strong id="reportTotal">—</strong></div>
+ <div class="metric-card"><span class="metric-label">CRITICAL</span><strong id="reportCritical">—</strong></div>
+ <div class="metric-card"><span class="metric-label">HIGH</span><strong id="reportHigh">—</strong></div>
+ <div class="metric-card"><span class="metric-label">MEDIUM / LOW</span><strong id="reportOther">—</strong></div>
+</div>
+<div class="panel" style="margin-bottom:14px">
+ <div class="panel-top"><div><div class="panel-head" style="margin:0">Latest Security Assessment</div><p class="section-sub" style="margin:5px 0 0">Report overview and scan metadata.</p></div><span id="reportState" class="active-tag">NO REPORT</span></div>
+ <div id="reportOverview" class="empty-state" style="margin-top:14px">Complete a scan to generate an intelligence report.</div>
+ <div class="action-row" style="margin-top:16px">
+  <button class="btn btn-primary" id="reportExport">⇩ &nbsp; EXPORT JSON</button>
+  <button class="btn btn-secondary" id="reportCsv">⇩ &nbsp; EXPORT FINDINGS CSV</button>
+  <button class="btn btn-secondary" id="reportPrint">▤ &nbsp; PRINT / SAVE PDF</button>
+ </div>
+</div>
+<div class="panel">
+ <div class="panel-head">Report Contents</div>
+ <div class="coverage-row"><span>Assessment metadata</span><b>Included</b></div>
+ <div class="coverage-row"><span>Severity distribution</span><b>Included</b></div>
+ <div class="coverage-row"><span>Finding details and redacted evidence</span><b>Included</b></div>
+ <div class="coverage-row"><span>Scan scope and file statistics</span><b>When available</b></div>
+ <p class="section-sub" style="margin-top:12px">Reports are generated locally in your browser. Review findings before sharing; exported reports may contain file paths and redacted evidence.</p>
+</div>
+</section>
+<section class="view" id="settings">
+<h2 class="section-title">Configuration</h2>
+<p class="section-sub">Manage the connection between the interface and the REEMSEC DataGuard backend.</p>
+<div class="panel" style="margin-bottom:14px">
+ <div class="panel-top"><div><div class="panel-head" style="margin:0">Backend Connection</div><p class="section-sub" style="margin:5px 0 0">Set the API base address used by scans and detection rules.</p></div><span id="configConnectionState" class="active-tag">NOT CHECKED</span></div>
+ <label for="apiEndpointInput" class="field-label" style="display:block;margin:18px 0 8px">API BASE URL</label>
+ <input id="apiEndpointInput" type="url" class="field-input" placeholder="http://127.0.0.1:8001" autocomplete="url" spellcheck="false">
+ <div class="action-row" style="margin-top:13px">
+  <button class="btn btn-primary" id="saveApiEndpoint">SAVE ENDPOINT</button>
+  <button class="btn btn-secondary" id="testApiConnection">TEST CONNECTION</button>
+  <button class="btn btn-secondary" id="resetApiEndpoint">RESET DEFAULT</button>
+ </div>
+ <p id="configApiMessage" class="section-sub" style="margin-top:12px">The default endpoint is used until you save a custom address.</p>
+</div>
+<div class="panel" style="margin-bottom:14px">
+ <div class="panel-head">Interface Preferences</div>
+ <div class="coverage-row"><span>Appearance</span><div class="theme-switch"><button id="configDarkBtn" type="button">☾</button><button id="configLightBtn" type="button">☼</button></div></div>
+ <p class="section-sub" style="margin-top:10px">Your appearance preference is saved in this browser.</p>
+</div>
+<div class="panel">
+ <div class="panel-head">Platform Information</div>
+ <div class="coverage-row"><span>Platform</span><b>REEMSEC DataGuard</b></div>
+ <div class="coverage-row"><span>Frontend version</span><b>1.0.0</b></div>
+ <div class="coverage-row"><span>Backend API</span><b>FastAPI</b></div>
+ <div class="coverage-row"><span>Scan history capacity</span><b>100 records</b></div>
+ <div class="coverage-row"><span>Maximum supported file size</span><b>10 MB</b></div>
+</div>
+</section>
+<section class="view" id="users">
+ <h2 class="section-title">User Management</h2><p class="section-sub">Create accounts and manage platform access. Available to administrators only.</p>
+ <div class="panel" style="margin-bottom:15px"><div class="panel-top"><div class="panel-head" style="margin:0">Create New User</div><span class="active-tag">ADMIN ONLY</span></div>
+ <form id="createUserForm" class="user-form-grid">
+  <div><label class="field-label" for="newUsername">USERNAME</label><input class="field-input" id="newUsername" required minlength="3" maxlength="50" autocomplete="off" placeholder="e.g. analyst01"></div>
+  <div><label class="field-label" for="newEmail">EMAIL</label><input class="field-input" id="newEmail" type="email" required placeholder="user@example.com"></div>
+  <div><label class="field-label" for="newPassword">TEMPORARY PASSWORD</label><input class="field-input" id="newPassword" type="password" required minlength="12" autocomplete="new-password" placeholder="At least 12 characters"></div>
+  <div><label class="field-label" for="newRole">ROLE</label><select class="field-input" id="newRole"><option value="employee">Employee</option><option value="security_analyst">Security Analyst</option><option value="admin">Admin</option></select></div>
+  <div class="user-form-actions"><button class="btn btn-primary" id="createUserBtn" type="submit">CREATE USER</button><span id="createUserMessage" class="section-sub" style="margin:0" role="status"></span></div>
+ </form></div>
+ <div class="panel"><div class="panel-top"><div><div class="panel-head" style="margin:0">Registered Users</div><p class="section-sub" style="margin:5px 0 0">Review roles and account status.</p></div><button class="btn btn-secondary" id="refreshUsersBtn" type="button">↻ REFRESH</button></div>
+ <div id="usersMessage" class="status" hidden role="status"></div><div class="table-wrap"><table class="users-table"><thead><tr><th>USER</th><th>EMAIL</th><th>ROLE</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody id="usersTableBody"><tr><td colspan="5" class="empty-state">Open this page to load users.</td></tr></tbody></table></div></div>
+</section>
+<section class="view" id="about"><h2 class="section-title">About REEMSEC DataGuard</h2><div class="panel"><div class="eyebrow">SECURITY ENGINEERING PROJECT</div><h2 style="font:700 25px 'Space Grotesk'">REEMSEC DataGuard</h2><p class="section-sub">Sensitive Data &amp; Secret Exposure Detection Platform</p><p>Identify potentially exposed API keys, tokens, passwords and private keys across text and supported files.</p><p class="section-sub">Detection coverage depends on implemented patterns. Findings require validation and should not be treated as a guarantee that content is safe.</p></div></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const DEFAULT_API_URL="http://127.0.0.1:8001";let API_URL=localStorage.getItem("reemsec-api-url")||DEFAULT_API_URL;const allFindings=[];
+const AUTH_TOKEN_KEY="reemsec_access_token";
+let accessToken=localStorage.getItem(AUTH_TOKEN_KEY)||"";
+let currentUser=null;
+async function apiFetch(url, options={}){
+ const headers=new Headers(options.headers||{});
+ if(accessToken) headers.set("Authorization","Bearer "+accessToken);
+ return fetch(API_URL+url,{...options,headers});
+}
+function showAuthenticatedApp(user){
+ currentUser=user;
+ const role=String(user.role||"employee").trim().toLowerCase();
+ const isAdmin=role==="admin";
+ const isAnalyst=role==="security_analyst";
+ const isPrivileged=isAdmin||isAnalyst;
+ document.body.classList.add("authenticated");
+ $("authScreen").style.display="none";
+ // Navigation is role-specific; backend endpoints enforce the same boundaries.
+ $("usersNav").hidden=!isAdmin;
+ $("settingsNav").hidden=!isAdmin;
+ $("coverageNav").hidden=!isPrivileged;
+ $("reportsNav").hidden=!isPrivileged;
+ $("clearHistoryBtn").hidden=!isAdmin;
+ $("directoryScanTab").hidden=!isPrivileged;
+ $("dashboardEyebrow").textContent=isAdmin?"◈  PLATFORM CONTROL · ADMINISTRATOR OVERVIEW":isAnalyst?"◈  SECURITY OPERATIONS · ORGANIZATION-WIDE VISIBILITY":"◈  PERSONAL SECURITY · YOUR SCAN ACTIVITY";
+ $("dashboardWelcome").innerHTML=isAdmin?"Welcome, <span>Administrator</span>":isAnalyst?"Welcome, <span>Security Analyst</span>":"Welcome to <span>Your Security Workspace</span>";
+ $("dashboardDescription").textContent=isAdmin?"Monitor platform activity, manage access, and oversee security scanning across REEMSEC DataGuard.":isAnalyst?"Review organization-wide scan activity, investigate exposures, and assess security risks across users.":"Run scans, review your own detected exposures, and track your personal scan history.";
+ $("recentFindingsTitle").textContent=isAdmin?"Latest Platform Findings":isAnalyst?"Organization-wide Recent Findings":"Your Recent Findings";
+ $("userOrb").textContent=(user.username||"U").charAt(0).toUpperCase();
+ $("userOrb").textContent=(user.username||"U").charAt(0).toUpperCase();
+ $("userOrb").title=`${user.username} · ${user.role}`;
+ if(!isAdmin && $("users").classList.contains("active")) go("dashboard");
+}
+function showLogin(message=""){
+ accessToken="";currentUser=null;localStorage.removeItem(AUTH_TOKEN_KEY);
+ document.body.classList.remove("authenticated");$("authScreen").style.display="grid";
+ $("loginError").textContent=message;
+}
+async function restoreSession(){
+ if(!accessToken){showLogin();return false;}
+ try{
+  const response=await apiFetch("/auth/me");
+  if(!response.ok)throw new Error("Session expired. Please sign in again.");
+  const user=await response.json();showAuthenticatedApp(user);return true;
+ }catch(error){showLogin(error.message);return false;}
+}
+$("togglePassword").addEventListener("click",()=>{
+ const field=$("loginPassword"),show=field.type==="password";
+ field.type=show?"text":"password";
+ $("togglePassword").setAttribute("aria-label",show?"Hide password":"Show password");
+ $("togglePassword").title=show?"Hide password":"Show password";
+ $("passwordEyeIcon").innerHTML=show
+  ?'<path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15 15 0 0 1-3.1 3.8"/><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.2 0 2.3-.2 3.3-.6"/>'
+  :'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>';
+});
+$("loginForm").addEventListener("submit",async event=>{
+ event.preventDefault();const button=$("loginSubmit");button.disabled=true;button.textContent="AUTHENTICATING...";$("loginError").textContent="";
+ const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),12000);
+ try{
+  const body=new URLSearchParams();body.set("username",$("loginIdentifier").value.trim());body.set("password",$("loginPassword").value);
+  const response=await fetch(API_URL+"/auth/login",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body,signal:controller.signal});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.detail||"Sign in failed. Check your username and password.");
+  if(!data.access_token)throw new Error("The server response did not include an access token.");
+  accessToken=data.access_token;localStorage.setItem(AUTH_TOKEN_KEY,accessToken);
+  showAuthenticatedApp(data.user||{username:$("loginIdentifier").value.trim(),role:"employee"});$("loginPassword").value="";
+  await checkAPI();await loadRules();await refreshBackendData();
+ }catch(error){
+  if(error.name==="AbortError")$("loginError").textContent="Connection timed out. Make sure the backend is running at "+API_URL;
+  else if(error instanceof TypeError)$("loginError").textContent="Cannot connect to the backend. Start the FastAPI server and check the API URL in Configuration.";
+  else $("loginError").textContent=error.message||"Unable to sign in.";
+ }finally{clearTimeout(timeout);button.disabled=false;button.textContent="SIGN IN →";}
+});
+$("logoutBtn").addEventListener("click",()=>showLogin("You have signed out."));
+const HISTORY_STORAGE_KEY="reemsec_dataguard_scan_history_v1";
+const MAX_HISTORY_RECORDS=100;
+let scanHistory=[],latestFindings=[],latestScanRecord=null;
+const colors={critical:"#ff5377",high:"#ff9b48",medium:"#f5d45c",low:"#35c8ff"};
+function go(id){
+ const role=String(currentUser?.role||"employee").trim().toLowerCase();
+ const isAdmin=role==="admin", isPrivileged=isAdmin||role==="security_analyst";
+ if(id==="users"&&!isAdmin) id="dashboard";
+ if(id==="settings"&&!isAdmin) id="dashboard";
+ if(["coverage","reports"].includes(id)&&!isPrivileged) id="dashboard";
+ if(id==="settings"&&typeof syncConfiguration==="function")syncConfiguration();
+ if(id==="users"&&typeof loadUsers==="function")loadUsers();
+ document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
+ document.querySelectorAll(".nav-item").forEach(v=>v.classList.toggle("active",v.dataset.view===id));
+ const names={dashboard:"Security Dashboard",scanner:"Threat Scanner",findings:"Security Findings",coverage:"Detection Rules",history:"Scan History",reports:"Intelligence Reports",settings:"Configuration",users:"User Management",about:"About Platform"};
+ $("pageTitle").textContent=names[id]||"REEMSEC DataGuard";
+}
+document.querySelectorAll("[data-view],[data-goto]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.view||b.dataset.goto)));
+function theme(t){document.body.classList.toggle("light-mode",t==="light");$("lightBtn").classList.toggle("active",t==="light");$("darkBtn").classList.toggle("active",t!=="light");localStorage.setItem("reemsec-theme",t)}
+$("lightBtn").onclick=()=>theme("light");$("darkBtn").onclick=()=>theme("dark");theme(localStorage.getItem("reemsec-theme")||"dark");
+function syncConfiguration(){
+ if(!$("apiEndpointInput"))return;
+ $("apiEndpointInput").value=API_URL;
+ const current=localStorage.getItem("reemsec-theme")||"dark";
+ $("configDarkBtn").classList.toggle("active",current==="dark");
+ $("configLightBtn").classList.toggle("active",current==="light");
+}
+$("configDarkBtn").onclick=()=>{theme("dark");syncConfiguration()};
+$("configLightBtn").onclick=()=>{theme("light");syncConfiguration()};
+$("saveApiEndpoint").onclick=async()=>{
+ const raw=$("apiEndpointInput").value.trim().replace(/\/+$/,"");
+ if(!raw){$("configApiMessage").textContent="Enter a valid API base URL.";return}
+ let parsed;
+ try{parsed=new URL(raw);if(!["http:","https:"].includes(parsed.protocol))throw new Error("Unsupported protocol")}
+ catch{$("configApiMessage").textContent="Invalid URL. Use an address beginning with http:// or https://.";return}
+ API_URL=parsed.origin+parsed.pathname.replace(/\/+$/,"");
+ localStorage.setItem("reemsec-api-url",API_URL);
+ $("configApiMessage").textContent="Endpoint saved. Checking backend connection...";
+ const connected=await checkAPI();
+ $("configApiMessage").textContent=connected
+  ?"Endpoint saved and backend connection is successful."
+  :"Endpoint saved, but the backend could not be reached. Check the address and server status.";
+ await loadRules();
+};
+$("testApiConnection").onclick=async()=>{
+ $("configApiMessage").textContent="Checking backend connection...";
+ const connected=await checkAPI();
+ $("configApiMessage").textContent=connected
+  ?"Connection successful. The backend health endpoint responded correctly."
+  :"Connection failed. Verify that the backend is running and the URL is correct.";
+};
+$("resetApiEndpoint").onclick=()=>{
+ API_URL=DEFAULT_API_URL;
+ localStorage.removeItem("reemsec-api-url");
+ syncConfiguration();
+ $("configApiMessage").textContent="Default endpoint restored.";
+ checkAPI();
+ loadRules();
+};
+syncConfiguration();
+
+async function checkAPI(){
+ try{
+  const response=await fetch(API_URL+"/health");
+  if(!response.ok)throw new Error("HTTP "+response.status);
+  $("apiStatus").textContent="API ONLINE";$("topApi").textContent="API CONNECTED";
+  if($("configConnectionState")){$("configConnectionState").textContent="CONNECTED";$("configConnectionState").style.color="var(--green)"}
+  document.querySelectorAll(".api-pill").forEach(x=>x.style.color="var(--green)");
+  return true;
+ }catch(error){
+  $("apiStatus").textContent="API OFFLINE";$("topApi").textContent="API OFFLINE";
+  document.querySelectorAll(".api-pill").forEach(x=>x.style.color="#ff8ca3");
+  if($("configConnectionState")){$("configConnectionState").textContent="OFFLINE";$("configConnectionState").style.color="#ff8ca3"}
+  return false;
+ }
+}
+function showStatus(t,c=""){let e=$("scanStatus");e.hidden=false;e.className="status "+c;e.textContent=t}
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{
+ if(b.dataset.mode==="directory" && !["admin","security_analyst"].includes(String(currentUser?.role||"").toLowerCase()))return;
+ ["text","file","directory"].forEach(m=>$(m+"Mode").style.display=m===b.dataset.mode?"block":"none");
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b))
+});
+$("loadExample").onclick=()=>{$("scanInput").value='# DEMO DATA — fake credentials only\\nAWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"\\nSTRIPE_SECRET_KEY = "sk_test_example_fake_secret"\\npassword = "example_password_123"\\nGITHUB_TOKEN = "ghp_example_fake_token"'};
+$("clearInput").onclick=()=>{$("scanInput").value="";$("resultsContent").textContent="Your scan results will appear here.";$("scanStatus").hidden=true};
+async function send(url,opt,label){showStatus("Analysis in progress...");try{const r=await apiFetch(url,opt);let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.detail||"Request failed");process(d,label)}catch(e){showStatus("Scan failed: "+e.message,"error")}}
+$("scanTextBtn").onclick=()=>{let content=$("scanInput").value;if(!content.trim())return showStatus("Enter content to scan first.","error");send("/scan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content})},"Text Scan")};
+$("scanFileBtn").onclick=async()=>{const files=Array.from($("fileInput").files||[]);if(!files.length)return showStatus("Choose at least one file first.","error");$("scanFileBtn").disabled=true;try{for(let i=0;i<files.length;i++){const f=files[i];showStatus("Scanning file "+(i+1)+" of "+files.length+": "+f.name);const fd=new FormData();fd.append("file",f);await send("/scan-file",{method:"POST",body:fd},"File: "+f.name);}}finally{$("scanFileBtn").disabled=false;}};
+$("scanDirectoryBtn").onclick=()=>{let path=$("directoryInput").value.trim();if(!path)return showStatus("Enter a directory path.","error");send("/scan-directory",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path})},"Directory Scan")};
+function extract(d){return Array.isArray(d)?d:(d.findings||d.results||d.matches||[])}
+function loadScanHistory(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY)||"[]");
+  return Array.isArray(saved)?saved.slice(0,MAX_HISTORY_RECORDS):[];
+ }catch{return []}
+}
+function persistScanHistory(){
+ try{
+  localStorage.setItem(HISTORY_STORAGE_KEY,JSON.stringify(scanHistory.slice(0,MAX_HISTORY_RECORDS)));
+ }catch{
+  showStatus("Scan completed, but browser storage is full. Export or clear old history.","error");
+ }
+}
+
+function normalizeFinding(item){
+ const x={...item};
+ if(x.line===undefined && x.line_number!==undefined)x.line=x.line_number;
+ if(x.filename===undefined && x.file_path!==undefined)x.filename=x.file_path;
+ return x;
+}
+function normalizeScanRecord(scan){
+ const dateValue=scan.completed_at||scan.created_at||null;
+ const date=dateValue?new Date(dateValue).toLocaleString():"Unknown date";
+ const findings=Array.isArray(scan.findings)?scan.findings.map(normalizeFinding):[];
+ const summary=scan.severity_summary||counts(findings);
+ const scanType=scan.scan_type||"unknown";
+ const label=scanType==="file"?"File Scan":
+             scanType==="directory"?"Directory Scan":
+             scanType==="text"?"Text Scan":scanType;
+ const target=scanType==="text"?"Text input":(scan.target||scan.directory||scan.filename||null);
+ return {
+  id:scan.id,label,scan_type:scanType,date,timestamp:dateValue,count:Number(scan.total_findings??findings.length),
+  severity_summary:summary,scanned_files:scan.scanned_files??null,
+  skipped_files:scan.skipped_files??null,filename:scanType==="file"?(target||null):null,
+  directory:scanType==="directory"?(target||null):null,target,
+  status:scan.status||"completed",warnings:Array.isArray(scan.warnings)?scan.warnings:[],
+  findings
+ };
+}
+async function refreshBackendData(){
+ try{
+  const response=await apiFetch("/scans/?page=1&page_size=100");
+  if(!response.ok)throw new Error("Scan history endpoint returned HTTP "+response.status);
+  const data=await response.json();
+  const scans=Array.isArray(data.scans)?data.scans:[];
+  scanHistory=scans.map(normalizeScanRecord);
+  allFindings.splice(0,allFindings.length,...scanHistory.flatMap(x=>x.findings||[]));
+  latestScanRecord=scanHistory[0]||null;
+  latestFindings=latestScanRecord?.findings||[];
+  const totals={critical:0,high:0,medium:0,low:0};
+  let total=0;
+  scanHistory.forEach(record=>{
+   total+=Number(record.count)||0;
+   const summary=record.severity_summary||{};
+   Object.keys(totals).forEach(level=>totals[level]+=Number(summary[level])||0);
+  });
+  $("totalCount").textContent=total;
+  Object.keys(totals).forEach(level=>$(level+"Count").textContent=totals[level]);
+  $("donutTotal").textContent=total;
+  cards(allFindings,$("allFindings"));
+  cards(allFindings.slice(0,4),$("dashboardFindings"),true);
+  historyRender();
+  renderReportPreview();
+  donutFromTotals(totals);
+  $("findingCount").textContent=`${allFindings.length} finding(s)`;
+  return true;
+ }catch(error){
+  console.warn("Could not refresh backend scan history:",error);
+  return false;
+ }
+}
+function donutFromTotals(c){
+ const n=Object.values(c).reduce((a,b)=>a+b,0);
+ let start=0;const parts=[];
+ Object.entries(c).forEach(([k,v])=>{const end=start+(n?v/n*360:0);parts.push(`${colors[k]} ${start}deg ${end}deg`);start=end});
+ $("severityDonut").style.background=`conic-gradient(${parts.join(",")||"#23445b 0deg 360deg"})`;
+ $("severityLegend").replaceChildren();
+ Object.entries(c).forEach(([k,v])=>{
+  const row=document.createElement("div");row.className="legend-row";
+  const name=document.createElement("span");name.className="legend-name";
+  const dot=document.createElement("i");dot.className="legend-dot";dot.style.background=colors[k];dot.style.color=colors[k];
+  name.append(dot,document.createTextNode(k[0].toUpperCase()+k.slice(1)));
+  const value=document.createElement("span");value.textContent=`${v} · ${n?Math.round(v/n*100):0}%`;
+  row.append(name,value);$("severityLegend").append(row);
+ });
+}
+
+function process(d,label){
+ const f=extract(d).map(normalizeFinding);
+ latestFindings=f;
+ const scanType=d.scan_type||(label.startsWith("File")?"file":label.startsWith("Directory")?"directory":"text");
+ latestScanRecord={
+  id:d.scan_id??d.id??null,label,scan_type:scanType,date:new Date().toLocaleString(),
+  timestamp:new Date().toISOString(),count:f.length,
+  severity_summary:d.severity_summary||counts(f),
+  scanned_files:d.scanned_files??null,skipped_files:d.skipped_files??null,
+  filename:scanType==="file"?(d.filename||d.target||null):null,
+  directory:scanType==="directory"?(d.directory||d.target||null):null,
+  target:d.target||d.filename||(scanType==="text"?"Text input":null),
+  warnings:Array.isArray(d.warnings)?d.warnings:[]
+ };
+ cards(f,$("resultsContent"));
+ if(Array.isArray(d.warnings)&&d.warnings.length){
+  const warningBox=document.createElement("div");warningBox.className="status";
+  warningBox.textContent="Scanner warnings: "+d.warnings.join(" · ");
+  $("resultsContent").append(warningBox);
+ }
+ updateMetrics(d,f);
+ showStatus(`Scan completed — ${f.length} finding(s) detected. Saving and refreshing database history...`,"success");
+ refreshBackendData().then(ok=>{
+  if(ok)showStatus(`Scan completed — ${f.length} finding(s) detected. Database history synchronized.`,"success");
+  else showStatus(`Scan completed — ${f.length} finding(s) detected. Live history could not be refreshed; check the backend connection.`,"error");
+ });
+}
+function counts(f){let c={critical:0,high:0,medium:0,low:0};f.forEach(x=>{let s=String(x.severity||"medium").toLowerCase();if(c[s]!==undefined)c[s]++});return c}
+function updateMetrics(d,f){let c=counts(f);if(d.severity_summary)Object.keys(c).forEach(k=>c[k]=Number(d.severity_summary[k]??c[k]));$("totalCount").textContent=f.length;Object.keys(c).forEach(k=>$(k+"Count").textContent=c[k]);$("donutTotal").textContent=f.length}
+function cards(f,el,compact=false){
+ el.replaceChildren();
+ if(!f.length){
+  el.className="empty-state";
+  el.textContent=compact?"No scan results yet. Start your first scan to see security findings here.":"No findings match the current filters.";
+  return;
+ }
+ el.className="";
+ f.forEach(x=>{
+  const d=document.createElement("article");
+  d.className="finding";
+  const top=document.createElement("div");
+  top.className="finding-top";
+  const h=document.createElement("h3");
+  h.textContent=String(x.rule||x.rule_name||x.type||"Security Finding").replaceAll("_"," ");
+  const severity=String(x.severity||"medium").toLowerCase();
+  const badge=document.createElement("span");
+  badge.className="badge "+(colors[severity]?severity:"medium");
+  badge.textContent=severity.toUpperCase();
+  top.append(h,badge);
+  d.append(top);
+
+  if(x.description){
+   const description=document.createElement("p");
+   description.className="finding-description";
+   description.textContent=x.description;
+   d.append(description);
+  }
+
+  const meta=document.createElement("div");
+  meta.className="finding-meta";
+  const file=x.file_path||x.filename||"Unknown file";
+  const details=[
+   "File: "+file,
+   "Line: "+(x.line??"N/A"),
+   "Fingerprint: "+(x.fingerprint??"N/A")
+  ];
+  details.forEach(value=>{
+   const item=document.createElement("span");
+   item.textContent=value;
+   meta.append(item);
+  });
+  d.append(meta);
+
+  const evidence=document.createElement("p");
+  evidence.textContent="Evidence: "+(x.evidence||"[REDACTED]");
+  d.append(evidence);
+
+  if(!compact && x.fingerprint){
+   const actions=document.createElement("div");
+   actions.className="finding-actions";
+   const copy=document.createElement("button");
+   copy.className="copy-fingerprint";
+   copy.type="button";
+   copy.textContent="COPY FINGERPRINT";
+   copy.onclick=async()=>{
+    try{
+     await navigator.clipboard.writeText(String(x.fingerprint));
+     copy.textContent="COPIED";
+    }catch{
+     copy.textContent="COPY UNAVAILABLE";
+    }
+   };
+   actions.append(copy);
+   d.append(actions);
+  }
+  el.append(d);
+ });
+}
+function donut(){let c=counts(allFindings),n=Object.values(c).reduce((a,b)=>a+b,0),start=0,parts=[];Object.entries(c).forEach(([k,v])=>{let end=start+(n?v/n*360:0);parts.push(`${colors[k]} ${start}deg ${end}deg`);start=end});$("severityDonut").style.background=`conic-gradient(${parts.join(",")||"#23445b 0deg 360deg"})`;$("donutTotal").textContent=n;$("severityLegend").replaceChildren();Object.entries(c).forEach(([k,v])=>{let row=document.createElement("div");row.className="legend-row";let nm=document.createElement("span");nm.className="legend-name";let dot=document.createElement("i");dot.className="legend-dot";dot.style.background=colors[k];dot.style.color=colors[k];nm.append(dot,document.createTextNode(k[0].toUpperCase()+k.slice(1)));let val=document.createElement("span");val.textContent=`${v} · ${n?Math.round(v/n*100):0}%`;row.append(nm,val);$("severityLegend").append(row)})}
+function historyRender(){
+ const el=$("scanHistory");
+ el.replaceChildren();
+ if(!scanHistory.length){
+  el.className="panel empty-state";
+  el.textContent="No saved scans yet. Completed scans will appear here.";
+  return;
+ }
+ el.className="panel";
+ scanHistory.forEach(record=>{
+  const card=document.createElement("article");
+  card.className="finding";
+  const top=document.createElement("div");
+  top.className="finding-top";
+  const title=document.createElement("h3");
+  title.textContent=record.label||"Security Scan";
+  const total=document.createElement("span");
+  total.className="badge";
+  total.textContent=`${Number(record.count)||0} finding(s)`;
+  top.append(title,total);
+  card.append(top);
+
+  const date=document.createElement("p");
+  date.textContent=`Completed: ${record.date||record.timestamp||"Unknown date"}`;
+  card.append(date);
+
+  const summary=record.severity_summary||{};
+  const meta=document.createElement("div");
+  meta.className="finding-meta";
+  ["critical","high","medium","low"].forEach(level=>{
+   const item=document.createElement("span");
+   item.textContent=`${level.toUpperCase()}: ${Number(summary[level])||0}`;
+   meta.append(item);
+  });
+  if(record.scanned_files!==null && record.scanned_files!==undefined){
+   const files=document.createElement("span");
+   files.textContent=`Files scanned: ${record.scanned_files}`;
+   meta.append(files);
+  }
+  if(record.skipped_files!==null && record.skipped_files!==undefined){
+   const skipped=document.createElement("span");
+   skipped.textContent=`Files skipped: ${record.skipped_files}`;
+   meta.append(skipped);
+  }
+  card.append(meta);
+
+  if(record.status){
+   const state=document.createElement("span");
+   state.className="badge";
+   state.textContent=String(record.status).toUpperCase();
+   top.append(state);
+  }
+  if(record.warnings?.length){
+   const warning=document.createElement("p");
+   warning.textContent=`Warnings: ${record.warnings.join(" · ")}`;
+   card.append(warning);
+  }
+  const actions=document.createElement("div");
+  actions.className="finding-actions";
+  const view=document.createElement("button");
+  view.className="copy-fingerprint";
+  view.type="button";
+  view.textContent="VIEW FINDINGS";
+  view.onclick=()=>{
+   latestScanRecord=record;
+   latestFindings=record.findings||[];
+   cards(latestFindings,$("resultsContent"));
+   renderReportPreview();
+   go("scanner");
+  };
+  actions.append(view);
+  card.append(actions);
+  el.append(card);
+ });
+}
+function exportScanHistory(){
+ const report={
+  product:"REEMSEC DataGuard",
+  exported_at:new Date().toISOString(),
+  total_scans:scanHistory.length,
+  scans:scanHistory
+ };
+ const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}));
+ const link=document.createElement("a");
+ link.href=url;
+ link.download="reemsec-scan-history.json";
+ link.click();
+ URL.revokeObjectURL(url);
+}
+const refreshHistoryBtn = $("refreshHistoryBtn");
+if (refreshHistoryBtn) {
+ refreshHistoryBtn.onclick = async () => {
+  $("scanHistory").textContent = "Refreshing database history...";
+  const ok = await refreshBackendData();
+  if (!ok) {
+   $("scanHistory").textContent = "Could not load scan history. Check the backend connection and your account permissions.";
+  }
+ };
+}
+$("exportHistoryBtn").onclick=exportScanHistory;
+$("clearHistoryBtn").onclick=async()=>{
+ if(String(currentUser?.role||"").trim().toLowerCase()!=="admin"){
+  alert("Administrator access is required to clear scan history.");
+  return;
+ }
+ if(!confirm("Permanently delete all scan history and findings? User accounts, settings, and audit logs will be retained."))return;
+ const button=$("clearHistoryBtn");
+ button.disabled=true;button.textContent="CLEARING...";
+ try{
+  const response=await apiFetch("/scans/clear",{method:"DELETE"});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.detail||`Unable to clear history (HTTP ${response.status}).`);
+  const refreshed=await refreshBackendData();
+  if(!refreshed)throw new Error("History was cleared, but the page could not refresh the updated list.");
+  alert(`Scan history cleared. ${Number(data.deleted_scans)||0} scan record(s) deleted. Audit logs were retained.`);
+ }catch(error){
+  alert(error.message||"Unable to clear scan history.");
+ }finally{
+  button.disabled=false;button.textContent="CLEAR HISTORY";
+ }
+};
+function filter(){
+ let q=$("findingSearch").value.toLowerCase().trim();
+ let severity=$("severityFilter").value;
+ let sort=$("findingSort").value;
+ let visible=allFindings.filter(x=>{
+  const searchable=[
+   x.rule,x.rule_name,x.type,x.fingerprint,x.filename,x.file_path,x.description
+  ].map(v=>String(v||"").toLowerCase()).join(" ");
+  return searchable.includes(q) &&
+   (severity==="all"||String(x.severity||"").toLowerCase()===severity);
+ });
+ const rank={critical:0,high:1,medium:2,low:3};
+ visible.sort((a,b)=>{
+  if(sort==="rule") return String(a.rule||a.rule_name||"").localeCompare(String(b.rule||b.rule_name||""));
+  if(sort==="file") return String(a.file_path||a.filename||"").localeCompare(String(b.file_path||b.filename||""));
+  if(sort==="newest") return 0;
+  return (rank[String(a.severity||"medium").toLowerCase()]??4)-
+         (rank[String(b.severity||"medium").toLowerCase()]??4);
+ });
+ $("findingCount").textContent=`${visible.length} of ${allFindings.length} finding(s)`;
+ cards(visible,$("allFindings"));
+}
+$("findingSearch").oninput=filter;
+$("severityFilter").onchange=filter;
+$("findingSort").onchange=filter;
+
+function renderReportPreview(){
+ const summary=latestScanRecord?.severity_summary||counts(latestFindings);
+ $("reportTotal").textContent=latestFindings.length;
+ $("reportCritical").textContent=Number(summary.critical)||0;
+ $("reportHigh").textContent=Number(summary.high)||0;
+ $("reportOther").textContent=(Number(summary.medium)||0)+(Number(summary.low)||0);
+ if(!latestScanRecord){
+  $("reportState").textContent="NO REPORT";
+  $("reportOverview").textContent="Complete a scan to generate an intelligence report. Reports use the latest scan record loaded from the backend database.";
+  return;
+ }
+ $("reportState").textContent="READY TO EXPORT";
+ $("reportOverview").replaceChildren();
+ const rows=[
+  ["Scan type",latestScanRecord.label||"Unknown"],
+  ["Completed",latestScanRecord.date||latestScanRecord.timestamp||"Unknown"],
+  ["Findings detected",String(latestFindings.length)],
+  ["Files scanned",latestScanRecord.scanned_files==null?"Not applicable":String(latestScanRecord.scanned_files)],
+  ["Files skipped",latestScanRecord.skipped_files==null?"Not applicable":String(latestScanRecord.skipped_files)],
+  ["Target",latestScanRecord.directory||latestScanRecord.filename||latestScanRecord.target||"Text input"]
+ ];
+ rows.forEach(([label,value])=>{
+  const row=document.createElement("div");row.className="coverage-row";
+  const left=document.createElement("span");left.textContent=label;
+  const right=document.createElement("b");right.textContent=value;
+  row.append(left,right);$("reportOverview").append(row);
+ });
+}
+function exportReport(){
+ if(!latestScanRecord){alert("Complete a scan in this session before exporting a report.");return}
+ const summary=latestScanRecord.severity_summary||counts(latestFindings);
+ const data={
+  product:"REEMSEC DataGuard",
+  report_type:"Security Scan Assessment",
+  report_version:"1.0",
+  generated_at:new Date().toISOString(),
+  scan:{
+   id:latestScanRecord.id,
+   type:latestScanRecord.label,
+   completed_at:latestScanRecord.timestamp,
+   target:latestScanRecord.directory||latestScanRecord.filename||latestScanRecord.target||"Text input",
+   files_scanned:latestScanRecord.scanned_files,
+   files_skipped:latestScanRecord.skipped_files
+  },
+  summary:{
+   total_findings:latestFindings.length,
+   severity_distribution:{
+    critical:Number(summary.critical)||0,
+    high:Number(summary.high)||0,
+    medium:Number(summary.medium)||0,
+    low:Number(summary.low)||0
+   }
+  },
+  warnings:latestScanRecord.warnings||[],
+  findings:latestFindings,
+  disclaimer:"Automated pattern-based findings require manual validation. A clean scan does not guarantee that content is free of exposed secrets."
+ };
+ const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
+ const link=document.createElement("a");
+ link.href=url;
+ link.download="reemsec-security-assessment.json";
+ link.click();
+ URL.revokeObjectURL(url);
+}
+
+function downloadTextFile(filename, content, mime){
+ const blob=new Blob([content],{type:mime});
+ const url=URL.createObjectURL(blob);
+ const link=document.createElement("a");link.href=url;link.download=filename;link.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportFindingsCsv(){
+ if(!latestScanRecord){alert("Complete a scan before exporting findings.");return;}
+ const columns=["rule","severity","description","evidence","location","line"];
+ const quote=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
+ const rows=[columns.join(","),...latestFindings.map(item=>columns.map(key=>quote(item[key])).join(","))];
+ downloadTextFile("reemsec-findings.csv",rows.join("\r\n"),"text/csv;charset=utf-8");
+}
+function printSecurityReport(){
+ if(!latestScanRecord){alert("Complete a scan before generating a report.");return;}
+ const summary=latestScanRecord.severity_summary||counts(latestFindings);
+ const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+ const target=latestScanRecord.directory||latestScanRecord.filename||latestScanRecord.target||"Text input";
+ const findingsHtml=latestFindings.length?latestFindings.map((f,i)=>`<tr><td>${i+1}</td><td>${esc(f.rule||f.type||"Finding")}</td><td>${esc(f.severity||"Unknown")}</td><td>${esc(f.description||"")}</td><td><code>${esc(f.evidence||"")}</code></td><td>${esc(f.location||f.file||"")}</td></tr>`).join(""):'<tr><td colspan="6">No findings detected.</td></tr>';
+ const warnings=(latestScanRecord.warnings||[]).map(w=>`<li>${esc(typeof w==="string"?w:JSON.stringify(w))}</li>`).join("");
+ const html=`<!doctype html><html><head><meta charset="utf-8"><title>REEMSEC DataGuard Security Assessment</title><style>body{font:14px Arial,sans-serif;color:#17232b;margin:36px}h1{color:#087e83;margin-bottom:4px}.muted{color:#61717b}.grid{display:flex;gap:12px;margin:22px 0}.metric{border:1px solid #ccd7dc;padding:12px;flex:1;border-radius:8px}.metric b{display:block;font-size:24px;margin-top:6px}table{width:100%;border-collapse:collapse;margin-top:18px;font-size:12px}th,td{border:1px solid #ccd7dc;padding:8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#eaf2f4}code{white-space:pre-wrap} .warning{background:#fff6df;padding:10px}footer{margin-top:30px;color:#61717b;font-size:11px}@media print{body{margin:15mm}button{display:none}}</style></head><body><h1>REEMSEC DataGuard</h1><div class="muted">Security Scan Assessment · Generated ${esc(new Date().toLocaleString())}</div><hr><h2>Assessment Overview</h2><p><b>Scan ID:</b> ${esc(latestScanRecord.id??"N/A")} &nbsp; <b>Type:</b> ${esc(latestScanRecord.label||"Unknown")}</p><p><b>Target:</b> ${esc(target)}<br><b>Completed:</b> ${esc(latestScanRecord.timestamp||latestScanRecord.date||"Unknown")}</p><div class="grid"><div class="metric">Total findings<b>${latestFindings.length}</b></div><div class="metric">Critical<b>${Number(summary.critical)||0}</b></div><div class="metric">High<b>${Number(summary.high)||0}</b></div><div class="metric">Medium / Low<b>${(Number(summary.medium)||0)+(Number(summary.low)||0)}</b></div></div>${warnings?`<h2>Scan Warnings</h2><ul class="warning">${warnings}</ul>`:""}<h2>Findings</h2><table><thead><tr><th>#</th><th>Rule</th><th>Severity</th><th>Description</th><th>Redacted Evidence</th><th>Location</th></tr></thead><tbody>${findingsHtml}</tbody></table><footer>Automated pattern-based findings require manual validation. A clean scan does not guarantee that content is free of exposed secrets.</footer><script>window.onload=()=>window.print()<\/script></body></html>`;
+ const popup=window.open("","_blank");
+ if(!popup){alert("Please allow pop-ups to print or save the report as PDF.");return;}
+ popup.document.open();popup.document.write(html);popup.document.close();
+}
+$("quickExport").onclick=exportReport;$("reportExport").onclick=exportReport;
+$("reportCsv").onclick=exportFindingsCsv;
+$("reportPrint").onclick=printSecurityReport;
+
+function showUsersMessage(message,isError=false){const box=$("usersMessage");box.hidden=!message;box.textContent=message||"";box.className="status"+(isError?" error":" success");}
+function renderUsers(users){
+  const body=$("usersTableBody");body.replaceChildren();
+  if(!users.length){const row=document.createElement("tr"),cell=document.createElement("td");cell.colSpan=5;cell.className="empty-state";cell.textContent="No users were returned.";row.appendChild(cell);body.appendChild(row);return;}
+  users.forEach(user=>{
+   const row=document.createElement("tr"),identity=document.createElement("td"),name=document.createElement("span");
+   name.className="user-name";name.textContent=user.username||`User #${user.id}`;identity.appendChild(name);
+   const meta=document.createElement("span");meta.className="user-meta";meta.textContent=`ID: ${user.id}`;identity.appendChild(meta);
+   const email=document.createElement("td");email.textContent=user.email||"—";
+   const roleCell=document.createElement("td"),roleSelect=document.createElement("select");roleSelect.className="field-input";
+   [{value:"employee",label:"Employee"},{value:"security_analyst",label:"Security Analyst"},{value:"admin",label:"Admin"}].forEach(o=>{const e=document.createElement("option");e.value=o.value;e.textContent=o.label;roleSelect.appendChild(e)});
+   roleSelect.value=user.role||"employee";roleCell.appendChild(roleSelect);
+   const statusCell=document.createElement("td"),status=document.createElement("span");status.className="user-status "+(user.is_active?"active":"inactive");status.textContent=user.is_active?"ACTIVE":"INACTIVE";statusCell.appendChild(status);
+   const actions=document.createElement("td"),save=document.createElement("button"),toggle=document.createElement("button"),del=document.createElement("button");
+   save.type=toggle.type=del.type="button";save.className=toggle.className=del.className="user-action";
+   save.textContent="SAVE ROLE";toggle.textContent=user.is_active?"DEACTIVATE":"ACTIVATE";
+   del.textContent="DELETE";del.classList.add("delete");toggle.style.marginLeft="6px";del.style.marginLeft="6px";
+   save.addEventListener("click",()=>updateUser(user.id,{role:roleSelect.value},save));
+   toggle.addEventListener("click",()=>updateUser(user.id,{is_active:!Boolean(user.is_active)},toggle));
+   del.addEventListener("click",()=>deleteUser(user,del));
+   if(Number(user.id)===Number(currentUser?.id)){toggle.disabled=true;toggle.title="You cannot deactivate your own account.";del.disabled=true;del.title="You cannot delete your own account.";}
+   actions.append(save,toggle,del);row.append(identity,email,roleCell,statusCell,actions);body.appendChild(row);
+  });
+}
+async function deleteUser(user,button){
+  const confirmed=confirm(`Permanently delete "${user.username}"? This also deletes their scan records and findings. Audit history is retained.`);
+  if(!confirmed)return;
+  button.disabled=true;
+  try{
+   const response=await apiFetch(`/admin/users/${encodeURIComponent(user.id)}`,{method:"DELETE"});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(data.detail||`Delete failed (HTTP ${response.status}).`);
+   await loadUsers();showUsersMessage(`User "${user.username}" deleted successfully.`);
+  }catch(error){showUsersMessage(error.message,true);button.disabled=false;}
+}
+async function loadUsers(){if(String(currentUser?.role||"").toLowerCase()!=="admin"){showUsersMessage("Administrator access is required.",true);return;}$("refreshUsersBtn").disabled=true;showUsersMessage("Loading users...");try{const response=await apiFetch("/admin/users/");const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.detail||`Unable to load users (HTTP ${response.status}).`);const users=Array.isArray(data)?data:(data.users||data.items||[]);renderUsers(users);showUsersMessage(`${users.length} user(s) loaded.`);}catch(error){showUsersMessage(error.message,true);}finally{$("refreshUsersBtn").disabled=false;}}
+async function updateUser(userId,changes,button){button.disabled=true;try{const response=await apiFetch(`/admin/users/${encodeURIComponent(userId)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(changes)});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.detail||`Update failed (HTTP ${response.status}).`);await loadUsers();showUsersMessage("User account updated successfully.");}catch(error){showUsersMessage(error.message,true);button.disabled=false;}}
+$("createUserForm").addEventListener("submit",async event=>{event.preventDefault();if(String(currentUser?.role||"").toLowerCase()!=="admin")return showUsersMessage("Administrator access is required.",true);const button=$("createUserBtn"),message=$("createUserMessage");button.disabled=true;button.textContent="CREATING...";message.textContent="";const payload={username:$("newUsername").value.trim(),email:$("newEmail").value.trim(),password:$("newPassword").value,role:$("newRole").value};try{const response=await apiFetch("/admin/users/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.detail||`Could not create user (HTTP ${response.status}).`);event.target.reset();message.textContent="User created.";message.style.color="var(--green)";await loadUsers();}catch(error){message.textContent=error.message;message.style.color="#ff9db0";}finally{button.disabled=false;button.textContent="CREATE USER";}});
+$("refreshUsersBtn").addEventListener("click",loadUsers);
+function renderRules(data){
+ const list=$("coverageList");
+ const rules=Array.isArray(data.rules)?data.rules:[];
+ $("rulesTotal").textContent=`${data.total_rules??rules.length} RULES`;
+ const counts={critical:0,high:0,medium:0,low:0};
+ rules.forEach(rule=>{const s=String(rule.severity||"medium").toLowerCase();if(counts[s]!==undefined)counts[s]++});
+ $("rulesStatus").textContent=rules.length
+  ? "Successfully synchronized with the backend detection engine."
+  : "The API responded, but no detection rules were returned.";
+ list.innerHTML="";
+ if(!rules.length){list.textContent="No detection rules are currently available.";return}
+ const summary=document.createElement("div");
+ summary.className="rules-summary";
+ Object.entries(counts).forEach(([severity,count])=>{
+  if(count){const item=document.createElement("span");item.textContent=`${severity.toUpperCase()}: ${count}`;summary.appendChild(item)}
+ });
+ list.appendChild(summary);
+ rules.forEach(rule=>{
+  const card=document.createElement("article");card.className="rule-card";
+  const top=document.createElement("div");top.className="rule-card-top";
+  const name=document.createElement("h3");name.textContent=rule.name||rule.id||"Unnamed rule";
+  const severity=document.createElement("span");
+  const level=String(rule.severity||"medium").toLowerCase();
+  severity.className=`badge ${["critical","high","medium","low"].includes(level)?level:"medium"}`;
+  severity.textContent=level.toUpperCase();
+  top.append(name,severity);
+  const description=document.createElement("p");
+  description.textContent=rule.description||"No description provided.";
+  const meta=document.createElement("div");meta.className="rule-meta";
+  const id=document.createElement("span");id.className="rule-id";id.textContent=rule.id||"rule";
+  const status=document.createElement("span");status.className="rule-status";
+  status.textContent=String(rule.status||"active").toUpperCase()==="ACTIVE"?"● ACTIVE":"● "+String(rule.status||"unknown").toUpperCase();
+  meta.append(id,status);
+  card.append(top,description,meta);list.appendChild(card);
+ });
+}
+async function loadRules(){
+ try{
+  const response=await apiFetch("/rules");
+  if(!response.ok)throw new Error("Rules endpoint returned HTTP "+response.status);
+  const data=await response.json();
+  renderRules(data);
+ }catch(error){
+  $("rulesTotal").textContent="UNAVAILABLE";
+  $("rulesStatus").textContent="Could not load live rules: "+error.message;
+  $("coverageList").innerHTML='<div class="empty-state">Start the backend API and refresh this page to load detection rules.</div>';
+ }
+}
+
+checkAPI();donut();renderReportPreview();$("findingCount").textContent="0 findings";historyRender();go("dashboard");
+restoreSession().then(async authenticated=>{if(authenticated){await loadRules();await refreshBackendData();}});
+// Ambient animated cyber particles — decorative only, no external image assets.
+const canvas=$("particles"),ctx=canvas.getContext("2d");let pts=[];function resize(){canvas.width=innerWidth;canvas.height=innerHeight;pts=Array.from({length:Math.min(75,Math.floor(innerWidth/18))},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22}))}function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);for(let i=0;i<pts.length;i++){let p=pts[i];p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;ctx.fillStyle="rgba(25,245,220,.55)";ctx.fillRect(p.x,p.y,2,2);for(let j=i+1;j<pts.length;j++){let q=pts[j],dx=p.x-q.x,dy=p.y-q.y,d=Math.hypot(dx,dy);if(d<115){ctx.strokeStyle=`rgba(25,210,220,${(1-d/115)*.13})`;ctx.lineWidth=.6;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke()}}}requestAnimationFrame(animate)}addEventListener("resize",resize);resize();animate();
+</script>
+</body></html>

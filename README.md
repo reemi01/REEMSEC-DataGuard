@@ -798,13 +798,7 @@ Security reporting interface available to authorized roles.
 
 ![Intelligence Reports](docs/screenshots/intelligence-reports.png)
 
-### 12.9 Export Results
 
-Demonstration of report export functionality.
-
-![Export Results](docs/screenshots/export-results.png)
-
----
 
 # 13. Roadmap
 

@@ -847,6 +847,9 @@ When evaluating the platform:
 | Repository | [GitHub - REEMSEC DataGuard](https://github.com/reemi01/REEMSEC-DataGuard) |
 
 ---
+## Documentation
+
+- [SOC Analysis Report](docs/SOC-Analysis-Report.md)
 
 # Author
 
